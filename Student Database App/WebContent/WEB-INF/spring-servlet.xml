@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:lang="http://www.springframework.org/schema/lang" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.1.xsd
+		http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.1.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		
+		<!-- Add support for component scanning -->
+		<context:component-scan base-package="com.work" />
+		<context:property-placeholder location="classpath:jdbc.properties" />	
+		
+		<!-- Add support for conversion, formatting and validation support -->
+		<mvc:annotation-driven />
+		
+		<!-- Define Spring MVC view resolver -->
+		<beans:bean id="jspViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+			<beans:property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+			<beans:property name="prefix" value="/WEB-INF/jsps/" />
+			<beans:property name="suffix" value=".jsp" />
+		</beans:bean>
+		
+		<!-- Step 1: Define Database Datasource/connection pool -->		
+		<beans:bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+			<beans:property name="driverClassName"  value="${jdbc.driverName}"/>
+			<beans:property name="url" value="${jdbc.databaseurl}" />
+			<beans:property name="username" value="${jdbc.username}" />
+			<beans:property name="password" value="${jdbc.password}" />
+		</beans:bean>
+		
+		<!-- Step 2: Setup Hibernate session factory -->
+		<beans:bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        	<beans:property name="dataSource" ref="dataSource" />
+         	<beans:property name="packagesToScan" value="com.work.entity"/>	
+        	<beans:property name="hibernateProperties">
+				
+				<beans:props>
+					<beans:prop key="hibernate.dialect">${jdbc.dialect}</beans:prop>
+				</beans:props>
+				
+			</beans:property>
+   		</beans:bean>
+		
+		<!-- Step 3: Setup Hibernate transaction manager -->
+		<beans:bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+			<beans:property name="sessionFactory" ref="sessionFactory" />
+		</beans:bean>
+		
+		<!-- Step 4: Enable configuration of transactional behavior based on annotations -->
+		<tx:annotation-driven transaction-manager="transactionManager" />
+		
+		<!-- Add support for reading web resources: css, images, js, etc... -->
+		<mvc:resources location="/images/" mapping="/images/**" />
+		<mvc:resources location="/js/" mapping="/js/**" />
+		
+		<!-- Add support for reading message for internationalization -->
+		<beans:bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+			<beans:property name="basename" value="resources/messages" />
+			<beans:property name="defaultEncoding" value="UTF-8" />
+		</beans:bean>
+		
+</beans:beans>
